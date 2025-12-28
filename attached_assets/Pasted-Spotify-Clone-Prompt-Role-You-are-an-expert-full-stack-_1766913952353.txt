@@ -1,0 +1,127 @@
+Spotify Clone - Prompt
+Role
+You are an expert full-stack front-end engineer who builds production-ready PWAs with modern React, clean TypeScript, accessible UI, and robust offline data strategies. You excel at IndexedDB data modeling, audio APIs, and deployable Vercel projects.
+
+Task
+Generate a complete “Spotify-style” local-music web app that users can deploy to Vercel. The app lets users upload MP3s, extracts ID3 metadata (including album art), stores everything in IndexedDB for offline use, and provides four core pages:
+
+Upload (import songs)
+All Songs (library with search/filter/sort)
+Playlists (CRUD + add/remove/reorder tracks)
+Now Playing (player controls + collapsible queue)
+Also implement PWA installability + offline capabilities and a modern, responsive UI.
+
+Context
+
+Stack: React + Vite + TypeScript, Tailwind CSS (or shadcn/ui with Tailwind), Dexie (or idb) for IndexedDB, music-metadata-browser (or similar) to parse ID3 tags in the browser.
+No external backend: All data (songs, metadata, artwork, playlists) is local to the browser using IndexedDB.
+Audio: Use the native <audio> element with programmatic controls. Enable Media Session API (lockscreen / hardware key controls, metadata, seek actions if supported).
+Routing: Use React Router.
+Pages:
+
+/upload: drag-and-drop or file input; batch import; show parse progress and dedupe by content hash or filename+duration; on success, save:
+Track doc: { id, title, artist, album, duration, year?, genre?, artworkBlobId?, createdAt, updatedAt }
+Blob store for audio file and (if present) artwork image.
+/songs: searchable/filterable/sortable list; list item shows title, artist, album, duration, and small artwork thumbnail; multi-select to add to playlist or queue.
+/playlists: create/rename/delete playlists; playlist detail page shows tracks with drag-and-drop reordering; add/remove tracks; store as
+{ id, name, trackIds[], createdAt, updatedAt }
+/now-playing: large artwork, title/artist/album, timeline with scrubbing, play/pause/prev/next, repeat, shuffle; collapsible queue panel with drag-and-drop reorder and clear; show upcoming tracks; allow adding from Songs/Playlists.
+Queue model
+Maintain a queue array of track IDs with a current index; supports enqueue, dequeue, reorder (drag & drop), clear, and “Play Next”.
+
+Artwork
+If MP3 has embedded artwork, extract and display. If missing, generate a placeholder (dominant color from audio hash or a simple gradient with initials). Cache/display efficiently (object URLs or blob retrieval).
+
+PWA
+Add manifest.webmanifest, icons, and a service worker. Cache app shell and static assets; precache route shell; dynamic caching strategy for artwork thumbnails; ensure offline library browsing and playback of previously added tracks. Provide an offline fallback page/message for first-run with no content.
+
+Data backup
+Export/import library & playlists (without audio blobs or with an option to include them as a zip if feasible). At minimum, export metadata JSON; re-link to blobs on restore when possible.
+
+Accessibility
+Keyboard navigable, focus rings, ARIA labels for player controls, visible state for queue panel toggle, reduced motion support.
+
+Testing hooks
+Seed demo tracks (mock metadata & tiny sample blobs) behind a dev flag for quick UI testing.
+
+Constraints
+
+Project structure & tooling
+
+Initialize with Vite React + TypeScript.
+Tailwind configured (or shadcn/ui on top of Tailwind). Provide a cohesive, modern theme (light/dark via CSS variables or class).
+Strict TypeScript types for models, hooks, and components.
+ESLint + Prettier configs.
+IndexedDB schema (Dexie or idb)
+Stores:
+
+tracks: id (string), title, artist, album, duration, artworkBlobId?, year?, genre?, timestamps.
+blobs: { id: string; type: 'audio'|'artwork'; blob: Blob }.
+playlists: { id: string; name: string; trackIds: string[]; createdAt; updatedAt }.
+app: settings (theme, repeat/shuffle, lastQueue, lastTrackId, lastPosition).
+Handle versioning/migrations gracefully.
+
+Player + queue
+
+Custom hook usePlayer() for play/pause/seek/next/prev/shuffle/repeat, queue management, and persistence of last session state.
+Media Session API integration: title/artist/album/artwork, action handlers (play/pause/next/prev/seek).
+Smooth scrubbing with requestAnimationFrame; handle ended event to advance.
+Parsing & uploads
+
+ID3 parse via music-metadata-browser (fallback: filename parsing).
+Deduplicate imports by content hash or (filename+duration).
+Store audio as blob in blobs store; create object URL when playing; revoke on unmount.
+UI/UX
+
+Responsive layout with a persistent bottom (mobile) or side (desktop) player bar.
+Collapsible queue (drawer/panel) with drag-and-drop (e.g., @dnd-kit or HTML5 DnD).
+Search/filter on Songs and within a playlist.
+Empty states and progress bars for uploads and parsing.
+Toasts for actions (added to queue, added to playlist, import finished).
+PWA/service worker
+
+Manifest with name, short_name, icons, display: standalone, theme/background colors.
+Service worker (Workbox or hand-rolled) that:
+Precaches build assets and route shell.
+Caches artwork images with cache-first + max-entries.
+Provides offline fallback page for unmatched navigations.
+Keeps IndexedDB as source of truth for audio; ensure playback works offline for previously imported songs.
+Vercel deployment
+
+No server required. Include vercel.json for SPA routing (rewrites /* → /index.html).
+README with deploy steps (Vercel import → build → deploy), local dev steps, and PWA testing instructions.
+Quality
+
+Strong typing, comments, and small, composable components.
+Avoid large libraries unless justified. Keep bundle size reasonable.
+Handle errors (failed parse, quota exceeded, corrupted blob) with user-friendly messages and guidance.
+Format
+Produce a multi-file project with:
+
+File tree showing all key files.
+Complete code for each file, including but not limited to:
+index.html, src/main.tsx, src/App.tsx, router setup.
+src/styles/tailwind.css (and Tailwind config), optional shadcn setup.
+src/db/indexedDb.ts (Dexie or idb wrapper with schema + migrations).
+src/types.ts (Track, Playlist, BlobDoc, AppSettings, Queue types).
+src/lib/id3.ts (metadata extraction helpers).
+src/lib/audio.ts (object URL helpers; time formatting; dominant-color/placeholder).
+src/hooks/usePlayer.ts, src/hooks/useIndexedDb.ts.
+src/pages/Upload.tsx, src/pages/Songs.tsx, src/pages/Playlists.tsx, src/pages/PlaylistDetail.tsx, src/pages/NowPlaying.tsx.
+src/components/PlayerBar.tsx, src/components/QueueDrawer.tsx, src/components/SongList.tsx, src/components/Artwork.tsx, src/components/UploadDropzone.tsx, src/components/TopBar.tsx, src/components/SearchBar.tsx, src/components/PlaylistCard.tsx.
+public/manifest.webmanifest, public/icons/*.
+src/sw.ts (or public/sw.js) and registration in main.
+vercel.json, vite.config.ts, tsconfig.json, tailwind.config.ts, .eslintrc.cjs, .prettierrc.
+README.md with setup, development, build, deploy, and troubleshooting.
+README must include:
+
+Features overview and screenshots placeholders.
+Data model diagrams (ASCII or Mermaid).
+PWA instructions (install, offline test steps).
+Backup/export/import instructions.
+Known limitations (e.g., browser storage quotas, Safari iOS nuances).
+Acceptance tests (lightweight):
+Scripted steps in README ensuring:
+
+upload → songs appear → artwork shows → add to queue → play → collapse/expand queue → create playlist → add songs → reorder → offline reload (works)
+Generate polished, working code that meets all constraints, is accessible, responsive, and ready to deploy to Vercel.
