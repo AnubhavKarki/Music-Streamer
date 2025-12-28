@@ -97,8 +97,7 @@ Output will be in `dist/public`.
 
 ## Known Limitations
 
-* Search feature is **not yet fully functional**.
-* All tracks button, previous/next player buttons are **pending implementation**.
+* Some niche features **not yet fully functional**.
 
 ---
 
