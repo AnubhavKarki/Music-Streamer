@@ -44,19 +44,23 @@ export const usePlayerStore = create<PlayerState>()(
       setVolume: (volume) => set({ volume }),
 
       nextTrack: () => {
-        const { queue, currentTrackId, repeat } = get();
-        if (!currentTrackId || queue.length === 0) return;
+        const { queue, currentTrackId, repeat, shuffle } = get();
+        if (queue.length === 0) return;
 
-        const currentIndex = queue.indexOf(currentTrackId);
-        
-        if (repeat === 'one') {
-           // Should trigger seek to 0 in audio element, usually handled by component logic observing id change
-           // For now, we simulate "next" as re-playing same track if triggered manually
+        if (repeat === 'one' && currentTrackId) {
+           // Component logic will restart the song
            return; 
         }
 
-        let nextIndex = currentIndex + 1;
-        if (nextIndex >= queue.length) {
+        let nextIndex;
+        if (shuffle) {
+          nextIndex = Math.floor(Math.random() * queue.length);
+        } else {
+          const currentIndex = currentTrackId ? queue.indexOf(currentTrackId) : -1;
+          nextIndex = currentIndex + 1;
+        }
+        
+        if (nextIndex >= queue.length || nextIndex < 0) {
           if (repeat === 'all') nextIndex = 0;
           else {
             set({ isPlaying: false });
@@ -68,15 +72,19 @@ export const usePlayerStore = create<PlayerState>()(
       },
 
       prevTrack: () => {
-        const { queue, currentTrackId } = get();
-        if (!currentTrackId || queue.length === 0) return;
+        const { queue, currentTrackId, shuffle } = get();
+        if (queue.length === 0) return;
         
-        const currentIndex = queue.indexOf(currentTrackId);
-        const prevIndex = currentIndex - 1;
+        let prevIndex;
+        if (shuffle) {
+          prevIndex = Math.floor(Math.random() * queue.length);
+        } else {
+          const currentIndex = currentTrackId ? queue.indexOf(currentTrackId) : 0;
+          prevIndex = currentIndex - 1;
+        }
         
         if (prevIndex < 0) {
-          // Restart current track or go to last? Usually restart if > 3s, but simple logic here:
-          set({ currentTrackId: queue[0], isPlaying: true });
+          set({ currentTrackId: queue[queue.length - 1], isPlaying: true });
         } else {
           set({ currentTrackId: queue[prevIndex], isPlaying: true });
         }
