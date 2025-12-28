@@ -1,16 +1,32 @@
 import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Sidebar } from "@/components/Sidebar";
+import { AudioPlayer } from "@/components/AudioPlayer";
+
+// Pages
+import Home from "@/pages/Home";
+import Upload from "@/pages/Upload";
+import NowPlaying from "@/pages/NowPlaying";
+import PlaylistDetail from "@/pages/PlaylistDetail";
 import NotFound from "@/pages/not-found";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: Infinity,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function Router() {
   return (
     <Switch>
-      {/* Add pages below */}
-      {/* <Route path="/" component={Home}/> */}
-      {/* Fallback to 404 */}
+      <Route path="/" component={Home} />
+      <Route path="/upload" component={Upload} />
+      <Route path="/now-playing" component={NowPlaying} />
+      <Route path="/playlist/:id" component={PlaylistDetail} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -19,10 +35,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <div className="flex h-screen bg-background text-foreground overflow-hidden font-body">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto relative bg-background">
+          <Router />
+        </main>
+        <AudioPlayer />
+      </div>
+      <Toaster />
     </QueryClientProvider>
   );
 }
