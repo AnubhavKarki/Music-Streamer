@@ -56,7 +56,7 @@ Music-Streamer/
 1. Clone the repo:
 
 ```bash
-git clone https://github.com/YourUsername/Music-Streamer.git
+git clone https://github.com/AnubhavKarki/Music-Streamer.git
 cd Music-Streamer
 ```
 
